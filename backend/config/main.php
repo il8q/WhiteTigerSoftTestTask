@@ -19,6 +19,17 @@ return [
                 'application/json' => 'yii\web\JsonParser',
             ]
         ],
+        'response' => [
+            // ...
+            'formatters' => [
+                \yii\web\Response::FORMAT_JSON => [
+                    'class' => 'yii\web\JsonResponseFormatter',//'yii\web\JsonResponseFormatter',
+                    'prettyPrint' => true, // use "pretty" output in debug mode
+                    'keepObjectType' => false, // keep object type for zero-indexed objects
+                    // ...
+                ],
+            ],
+        ],
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,

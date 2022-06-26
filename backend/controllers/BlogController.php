@@ -2,98 +2,152 @@
 
 namespace backend\controllers;
 
-use app\models\User;
-use backend\models\BlogForm;
 use common\models\Blog;
+use common\models\BlogSearch;
+use common\models\User;
 use Yii;
-use yii\helpers\Json;
-use yii\rest\Controller;
+use yii\filters\AccessControl;
+use yii\web\Controller;
+use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use yii\web\Response;
 
+/**
+ * BlogApiController implements the CRUD actions for Blog model.
+ */
 class BlogController extends Controller
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function behaviors()
     {
-        return [
+        return array_merge(
+            parent::behaviors(),
             [
-                'class' => 'yii\filters\ContentNegotiator',
-                'only' => ['add', 'all'],
-                'formats' => [
-                    'application/json' => Response::FORMAT_JSON,
+                'access' => [
+                    'class' => AccessControl::class,
+                    'only' => ['index', 'create', 'update', 'delete'],
+                    'rules' => [
+                        [
+                            'allow' => true,
+                            'actions' => ['index', 'create', 'update', 'delete'],
+                            'roles' => ['@'],
+                            'matchCallback' => function ($rule, $action) {
+                                $userId = Yii::$app->user->identity->getId();
+                                $user = User::findOne(['id' => $userId]);
+                                return $user->is_admin != 0;
+                            }
+                        ],
+                    ],
                 ],
-                'languages' => [
-                    'en',
+                'verbs' => [
+                    'class' => VerbFilter::className(),
+                    'actions' => [
+                        'delete' => ['POST'],
+                    ],
                 ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'add' => ['post'],
-                    'all' => ['get'],
-                    'my' => ['get'],
-                ],
-            ],
-        ];
+            ]
+        );
     }
 
     /**
-     * Publish post to user blog.
-     * Request like http://backend.test/index.php?r=blog%2Fpublish
+     * Lists all Blog models.
      *
      * @return string
      */
-    public function actionPublish(): string
+    public function actionIndex()
     {
-        $model = new BlogForm();
-        if ($model->load(Yii::$app->request->post(), "data") && $model->publish()) {
-            return json_encode(
-                ['result' => 'success']
-            );
+        $searchModel = new BlogSearch();
+        $dataProvider = $searchModel->search($this->request->queryParams);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
+    /**
+     * Displays a single Blog model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionView($id)
+    {
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
+    }
+
+    /**
+     * Creates a new Blog model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return string|\yii\web\Response
+     */
+    public function actionCreate()
+    {
+        $model = new Blog();
+
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        } else {
+            $model->loadDefaultValues();
         }
-        return json_encode(['error' => $model->errors]);
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
-     * Get all posts.
-     * Request like http://backend.test/index.php?r=blog%2Fall&limit=2&offset=2
-     *
-     * @return string
+     * Updates an existing Blog model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param int $id ID
+     * @return string|\yii\web\Response
+     * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionAll(): string
+    public function actionUpdate($id)
     {
-        $data = Yii::$app->request->get();
-        $offset = $data['offset'] ?? 0;
-        $limit = $data['limit'] ?? 5;
+        $model = $this->findModel($id);
 
-        return JSON::encode(
-            Blog::find()
-                ->where(['between', 'id', $offset, $offset + $limit - 1 ])
-                ->all(),
-            JSON_PRETTY_PRINT
-        );
+        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
     /**
-     * Get all posts.
-     * Request like http://backend.test/index.php?r=blog%2Fmy&access_token=K_or5snpWK9BfEXFZcSjqvHMMzom2102_1656163864
-     *
-     * @return string
+     * Deletes an existing Blog model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param int $id ID
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionMy(): string
+    public function actionDelete($id)
     {
-        $data = Yii::$app->request->get();
-        $access_token = $data['access_token'] ?? null;
-        BlogForm::checkAccessToken((string)$access_token);
+        $this->findModel($id)->delete();
 
-        return JSON::encode(
-            Blog::find()
-                ->where(['access_token' => $access_token])
-                ->all(),
-            JSON_PRETTY_PRINT
-        );
+        return $this->redirect(['index']);
+    }
+
+    /**
+     * Finds the Blog model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param int $id ID
+     * @return Blog the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = Blog::findOne(['id' => $id])) !== null) {
+            return $model;
+        }
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }
