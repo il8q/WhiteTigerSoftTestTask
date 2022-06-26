@@ -1,60 +1,67 @@
-<p align="center">
-    <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://avatars0.githubusercontent.com/u/993323" height="100px">
-    </a>
-    <h1 align="center">Yii 2 Advanced Project Template</h1>
-    <br>
-</p>
+### Примечание для проверяющих
+1) Так как с Yii я раньше не работал, то много времени потратил на изучение теории. Давно(4 года назад, на бакалавриате)
+работал с Symfony.
+2) Кроме того старался делать побыстрее, поэтому, возможно, применены неоптимальные решения.
+3) В проекте две ветки: master и features/1_api_and_admin_page
 
-Yii 2 Advanced Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-developing complex Web applications with multiple tiers.
+### Вопросы по заданию
+1) Нужно ли было делать pretty url-ы для API? Об этом ничего не было сказано, поэтому не стал делать, потому-что быстрее
+2) Когда добавлял api, нужно было добавлять контроллер. По итогу получилось два контроллера BlogController и 
+BlogapiController Первый отвечает за CRUD, второй относится к api. Yii имя BlogApiController не распознает, имя 
+сущности должно состоять из одного слова. Как лучше сделать? Можно было бы в один контроллер все поместить, но тогда 
+будет нарушен принцип единственной отвественности.
+3) В постановке задачи указаны "Сценарий работы в Мобильном приложении". Их нужно было реализовывать? 
+Название проекта - API и Админка для мобильного приложения "Блог". Следует ли из этого названия, что ранее упомянутые 
+сценарии написаны только для описания контекста?
 
-The template includes three tiers: front end, back end, and console, each of which
-is a separate Yii application.
+### Установка и настройка
+Использованное ПО: OpenServer, Advanced REST client.
 
-The template is designed to work in a team development environment. It supports
-deploying the application in different environments.
+Использовал не MAMP, потому-что у меня windows 8, не давно переустанавливал винду из-за того что ПО куллера сбилось(
+ничего не помогало, была windows 10, но загрузочную флешку оставил у родителей), а в версии для windows 8 используется 
+более старые версии необходимого ПО и более старая версия php.
+У OpenServer такой проблемы нет, и доступны все функции.
+1) Скачать пакеты:
 
-Documentation is at [docs/guide/README.md](docs/guide/README.md).
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Total Downloads](https://img.shields.io/packagist/dt/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![build](https://github.com/yiisoft/yii2-app-advanced/workflows/build/badge.svg)](https://github.com/yiisoft/yii2-app-advanced/actions?query=workflow%3Abuild)
+    php composer.phar update
 
-DIRECTORY STRUCTURE
--------------------
+2) Перед запуском в конфиг Apache добавить, заменив пути на нужные:
 
-```
-common
-    config/              contains shared configurations
-    mail/                contains view files for e-mails
-    models/              contains model classes used in both backend and frontend
-    tests/               contains tests for common classes    
-console
-    config/              contains console configurations
-    controllers/         contains console controllers (commands)
-    migrations/          contains database migrations
-    models/              contains console-specific model classes
-    runtime/             contains files generated during runtime
-backend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains backend configurations
-    controllers/         contains Web controller classes
-    models/              contains backend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for backend application    
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-frontend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains frontend configurations
-    controllers/         contains Web controller classes
-    models/              contains frontend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for frontend application
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-    widgets/             contains frontend widgets
-vendor/                  contains dependent 3rd-party packages
-environments/            contains environment-based overrides
-```
+
+    <VirtualHost *:80>
+        ServerName frontend.test
+        DocumentRoot G:\Work\WhiteTigerSoftTestTask\frontend\web
+        <Directory  "G:\Work\WhiteTigerSoftTestTask\frontend\web">
+            Options +Indexes +FollowSymLinks +MultiViews
+            AllowOverride All
+            Require all granted
+    
+            # use mod_rewrite for pretty URL support
+            RewriteEngine on
+            # If a directory or a file exists, use the request directly
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            # Otherwise forward the request to index.php
+            RewriteRule . index.php
+        </Directory>
+    </VirtualHost>
+    
+    <VirtualHost *:80>
+        ServerName backend.test
+        DocumentRoot G:\Work\WhiteTigerSoftTestTask\backend\web
+        <Directory  "G:\Work\WhiteTigerSoftTestTask\backend\web">
+            Options +Indexes +FollowSymLinks +MultiViews
+            AllowOverride All
+            Require all granted
+    
+            # use mod_rewrite for pretty URL support
+            RewriteEngine on
+            # If a directory or a file exists, use the request directly
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            # Otherwise forward the request to index.php
+            RewriteRule . index.php
+        </Directory>
+    </VirtualHost>
+
