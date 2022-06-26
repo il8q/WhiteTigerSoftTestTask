@@ -2,7 +2,9 @@
 
 namespace backend\models;
 
+use common\models\AccessToken;
 use common\models\Blog;
+use common\models\User;
 use DateTime;
 use yii\base\Model;
 
@@ -37,12 +39,21 @@ class BlogForm extends Model
         }
 
         $user = new Blog();
-
+        $this->checkAccessToken();
         $user->access_token = $this->access_token;
         $user->text = $this->content;
 
         $date = new DateTime('now');
         $user->created_at = $date->format('Y-m-d');
         return $user->save();
+    }
+
+    private function checkAccessToken()
+    {
+        $user = AccessToken::findOne(['access_token' => $this->access_token]);
+        if (!$user)
+        {
+            throw new \Error('Access token incorrect');
+        }
     }
 }
