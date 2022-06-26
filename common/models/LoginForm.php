@@ -58,20 +58,10 @@ class LoginForm extends Model
     {
         if ($this->validate()) {
             $user = $this->getUser();
-            $this->generateAccessToken($user);
-            $user->save();
             return Yii::$app->user->login($user, $this->rememberMe ? 3600 * 24 * 30 : 0);
         }
         
         return false;
-    }
-
-    private function generateAccessToken(User $user)
-    {
-        $access_token = new AccessToken();
-        $access_token->user_id = $user->id;
-        $access_token->$access_token = Yii::$app->security->generateRandomString() . '_' . time();
-        $access_token->save();
     }
 
     /**

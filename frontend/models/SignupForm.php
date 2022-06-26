@@ -2,6 +2,7 @@
 
 namespace frontend\models;
 
+use common\models\AccessToken;
 use Yii;
 use yii\base\Model;
 use common\models\User;
@@ -14,7 +15,10 @@ class SignupForm extends Model
     public $username;
     public $email;
     public $password;
-
+    /**
+     * @var string
+     */
+    private $accessToken;
 
     /**
      * {@inheritdoc}
@@ -55,8 +59,25 @@ class SignupForm extends Model
         $user->setPassword($this->password);
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
+        $user->save();
 
-        return $user->save() && $this->sendEmail($user);
+        $this->accessToken = $this->generateAccessToken($user->getId());
+
+        return $this->sendEmail($user);
+    }
+
+    private function generateAccessToken($userId): string
+    {
+        $access_token = new AccessToken();
+        $access_token->user_id = $userId;
+        $access_token->access_token = Yii::$app->security->generateRandomString() . '_' . time();
+        $access_token->save();
+        return $access_token->access_token;
+    }
+
+    public function getAccessToken(): string
+    {
+        return $this->accessToken;
     }
 
     /**

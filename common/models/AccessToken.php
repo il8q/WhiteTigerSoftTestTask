@@ -8,7 +8,8 @@ use yii\db\ActiveRecord;
 /**
  * This is the model class for table "access_token".
  *
- * @property int $user_id
+ * @property integer $id
+ * @property integer $user_id
  * @property string $access_token
  */
 class AccessToken extends ActiveRecord
@@ -39,8 +40,17 @@ class AccessToken extends ActiveRecord
     public function attributeLabels()
     {
         return [
+            'id' => "Id",
             'user_id' => 'User ID',
             'access_token' => 'Access Token',
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->getPrimaryKey();
     }
 }
