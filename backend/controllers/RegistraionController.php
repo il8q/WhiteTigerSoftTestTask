@@ -12,9 +12,6 @@ use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use yii\web\Response;
 
-/**
- * UserController implements the CRUD actions for User model.
- */
 class RegistraionController extends Controller
 {
     /**
@@ -43,11 +40,12 @@ class RegistraionController extends Controller
     }
 
     /**
-     * Lists all User models.
+     * Register user.
+     * Request-url like http://backend.test/index.php?r=registraion%2Fregister
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionRegister()
     {
         $model = new SignupForm();
         if ($model->load(Yii::$app->request->post(), "data") && $model->signup()) {
@@ -55,6 +53,6 @@ class RegistraionController extends Controller
                 ['access_token' => $model->getAccessToken()]
             );
         }
-        return json_encode(['error' => 'Invalid password or email']);
+        return json_encode(['error' => $model->errors]);
     }
 }
