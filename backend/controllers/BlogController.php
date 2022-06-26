@@ -34,6 +34,7 @@ class BlogController extends Controller
                 'actions' => [
                     'add' => ['post'],
                     'all' => ['get'],
+                    'my' => ['get'],
                 ],
             ],
         ];
@@ -71,6 +72,26 @@ class BlogController extends Controller
         return JSON::encode(
             Blog::find()
                 ->where(['between', 'id', $offset, $offset + $limit - 1 ])
+                ->all(),
+            JSON_PRETTY_PRINT
+        );
+    }
+
+    /**
+     * Get all posts.
+     * Request like http://backend.test/index.php?r=blog%2Fmy&access_token=K_or5snpWK9BfEXFZcSjqvHMMzom2102_1656163864
+     *
+     * @return string
+     */
+    public function actionMy(): string
+    {
+        $data = Yii::$app->request->get();
+        $access_token = $data['access_token'] ?? null;
+        BlogForm::checkAccessToken((string)$access_token);
+
+        return JSON::encode(
+            Blog::find()
+                ->where(['access_token' => $access_token])
                 ->all(),
             JSON_PRETTY_PRINT
         );

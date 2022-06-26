@@ -39,7 +39,7 @@ class BlogForm extends Model
         }
 
         $user = new Blog();
-        $this->checkAccessToken();
+        $this->checkAccessToken($this->access_token);
         $user->access_token = $this->access_token;
         $user->text = $this->content;
 
@@ -48,9 +48,9 @@ class BlogForm extends Model
         return $user->save();
     }
 
-    private function checkAccessToken()
+    static public function checkAccessToken(string $access_token)
     {
-        $user = AccessToken::findOne(['access_token' => $this->access_token]);
+        $user = AccessToken::findOne(['access_token' => $access_token]);
         if (!$user)
         {
             throw new \Error('Access token incorrect');
